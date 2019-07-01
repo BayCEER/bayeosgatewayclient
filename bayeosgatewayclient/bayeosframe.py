@@ -56,11 +56,12 @@ class BayEOSFrame(object):
             print 'Error in to_object method: ' + str(err)
 
     @staticmethod
-    def parse_frame(frame,res={'origin':'','timestamp':time()}):
+    def parse_frame(frame):
         """Parses a binary coded BayEOS Frame into a Python dictionary.
         @param frame: binary coded String
         @return Python dictionary
         """
+        res={'origin':'','timestamp':time()}
         try:
             bayeos_frame = BayEOSFrame.to_object(frame)
             bayeos_frame.frame = frame
@@ -85,7 +86,7 @@ class DataFrame(BayEOSFrame):
             key=1;
             for value in values:
                 if(type(value) is tuple or type(value) is list):
-                   v[value[0]]=value[1]
+                    v[value[0]]=value[1]
                 else: 
                     v[key]=value
                 key += 1
@@ -240,6 +241,23 @@ class DelayedFrame(BayEOSFrame):
         @return timestamp and nested_frame as a binary String
         """
         res['timestamp']-=unpack('<l', self.frame[1:5])[0]/1000
+        return BayEOSFrame.parse_frame(self.frame[5:],res)
+
+class DelayedSecondFrame(BayEOSFrame):
+    """Delayed Frame Factory class."""
+    def create(self, nested_frame, delay=0):
+        """Creates a BayEOS Delayed Frame.
+        @param nested_frame: valid BayEOS Frame
+        @param delay: delay in milliseconds
+        """
+        
+        self.frame += pack('<l', delay) + nested_frame
+
+    def parse(self,res={'origin':'','timestamp':time()}):
+        """Parses a binary coded Delayed Frame into a Python dictionary.
+        @return timestamp and nested_frame as a binary String
+        """
+        res['timestamp']-=unpack('<l', self.frame[1:5])[0]
         return BayEOSFrame.parse_frame(self.frame[5:],res)
 
 class OriginFrame(BayEOSFrame):
@@ -398,7 +416,9 @@ FRAME_TYPES = {0x1: {'name' : 'Data Frame',
                0xe: {'name' : 'Gateway Command',
                      'class' : CommandFrame},
                0xf: {'name' : 'Checksum Frame',
-                     'class' : ChecksumFrame}}
+                     'class' : ChecksumFrame},
+               0x10: {'name' : 'Delayed Second Frame',
+                     'class' : DelayedSecondFrame}}
 
 # swaps keys and values in FRAME_TYPES Dictionary
 # FRAME_NAMES = {value['name']:key for key, value in FRAME_TYPES.iteritems()}
