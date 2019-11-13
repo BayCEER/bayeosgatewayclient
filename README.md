@@ -8,15 +8,12 @@ You can either use the setup.py script, the Python Package Index (PIP) or a Linu
 
 ### Setup.py
 Do the following steps to install the package via the setup.py script:
-- git clone request ```git clone git://github.com/kleebaum/bayeosgatewayclient.git```
+- git clone request ```git clone git://github.com/BayCEER/bayeosgatewayclient.git```
 - find the right directory ```cd bayeosgatewayclient```
 - run ```python setup.py install``` as root
 
-### PIP
-- run ```pip install bayeosgatewayclient```
-
 ### Linux Binary (for Debian)
-- add the following repositories to /etc/apt/sources.list ```deb http://www.bayceer.uni-bayreuth.de/repos/apt/debian wheezy main```
+- add the following repositories to /etc/apt/sources.list ```deb http://www.bayceer.uni-bayreuth.de/repos/apt/debian stretch main```
 - install key ```wget -O - http://www.bayceer.uni-bayreuth.de/repos/apt/conf/bayceer_repo.gpg.key | apt-key add -```
 - ```apt-get update```
 - ```apt-get install python-bayeosgatewayclient```
