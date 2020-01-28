@@ -13,12 +13,13 @@ URL = 'http://bayconf.bayceer.uni-bayreuth.de/gateway/frame/saveFlat'
 writer = BayEOSWriter(PATH)
 writer.save_msg('Writer was started.')
 
+## Create the sender and start it in the background
 sender = BayEOSSender(PATH, NAME, URL)
 sender.start()
 
 
-
+## main tread - runs unlimited
 while True:
-    writer.save(values={"c1":1.2,"xx":1.7},value_type=0x61) 
+    writer.save(values={"Temperatur":22.0,"Feuchte":55.2},value_type=0x61) 
     sleep(5)
-    #writer.flush()
+    writer.flush()

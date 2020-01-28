@@ -5,10 +5,9 @@ from bayeosgatewayclient import BayEOSFrame
 # Data Frames, simple
 data_frame_simple = BayEOSFrame.factory(0x1)
 data_frame_simple.create(values=(2, 5, 4), value_type=0x22)  # Data Type Integer
-print data_frame_simple.parse()
 data_frame_simple.print_dict()
 data_frame_simple.print_hex()
-print BayEOSFrame.parse_frame(data_frame_simple.frame)
+print(BayEOSFrame.parse_frame(data_frame_simple.frame))
 
 # Data Frame with Channel Offset
 data_frame_offset = BayEOSFrame.factory()  # 0x1 is default
@@ -50,7 +49,7 @@ routed_frame.print_dict()
 
 # Binary Frame
 binary_frame = BayEOSFrame.factory(frame_type=0xa)
-binary_frame.create("This a message to be packed as binary data.")
+binary_frame.create("This a message to be packed as binary data.".encode('utf-8'))
 binary_frame.print_dict()
 
 # Delayed Frame

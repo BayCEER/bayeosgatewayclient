@@ -16,10 +16,10 @@ if args.url:
 else:
     URL = 'http://bayconf.bayceer.uni-bayreuth.de/gateway/frame/saveFlat'
 
-print 'name to appear in Gateway is', NAME
-print 'max-chunk is', MAX_CHUNK, 'byte'
-print 'writer sleep time is', WRITER_SLEEP, 'sec'
-print 'path to store writer files is', PATH
+print('name to appear in Gateway is', NAME)
+print('max-chunk is', MAX_CHUNK, 'byte')
+print('writer sleep time is', WRITER_SLEEP, 'sec')
+print('path to store writer files is', PATH)
 
 # init writer and sender
 writer = BayEOSWriter(PATH, MAX_CHUNK)

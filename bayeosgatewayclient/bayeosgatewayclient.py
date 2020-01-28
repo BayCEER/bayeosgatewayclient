@@ -10,10 +10,16 @@ from bayeosframe import BayEOSFrame
 from abc import abstractmethod
 from multiprocessing import Process
 from threading import Thread
-from thread import start_new_thread
+import sys
+if sys.version_info> (2 , 8):
+    from _thread import start_new_thread
+    from configparser import ConfigParser
+else:
+    from thread import start_new_thread
+    from ConfigParser import ConfigParser
+   
 from shutil import move
 import argparse
-import ConfigParser
 import logging
 import requests
 import tempfile
@@ -64,7 +70,7 @@ def bayeos_confparser(config_file):
     """Reads a config file and returns a Python dictionary.
     @param config_file: path to the config file
     """
-    config_parser = ConfigParser.ConfigParser()
+    config_parser = ConfigParser()
     config = {}
     try:
         config_parser.read(config_file)
@@ -76,7 +82,7 @@ def bayeos_confparser(config_file):
                     None
                 config[key] = value
     except ConfigParser.Error as e:
-        print str(e) + '. Config File not found or corrupt.'
+        print(str(e) + '. Config File not found or corrupt.')
     return config
 
 class BayEOSWriter(object):
@@ -96,7 +102,7 @@ class BayEOSWriter(object):
         self.max_time = max_time
         if not os.path.isdir(self.path):
             try:
-                os.makedirs(self.path, 0700)
+                os.makedirs(self.path, 0o700)
             except OSError as err:
                 logging.critical('OSError: ' + str(err) + ' Could not create dir.')
                 exit()
@@ -127,7 +133,7 @@ class BayEOSWriter(object):
     def __start_new_file(self):
         """Opens a new file with ending .act and determines current file name."""
         self.current_timestamp = time()
-        [sec, usec] = string.split(str(self.current_timestamp), '.')        
+        [sec, usec] = str.split(str(self.current_timestamp), '.')        
         [fd, self.current_name] = tempfile.mkstemp('.act',sec + '-' + usec + '-',self.path)
         os.close(fd)
         self.file = open(self.current_name, 'wb')
@@ -230,7 +236,7 @@ class BayEOSSender(object):
         logging.getLogger().setLevel(log_level)
         if backup_path and not os.path.isdir(backup_path):
             try:
-                os.makedirs(backup_path, 0700)
+                os.makedirs(backup_path, 0o700)
             except OSError as err:
                 logging.warning('OSError: ' + str(err))
             backup_path=os.path.abspath(backup_path)
@@ -428,7 +434,7 @@ class BayEOSGatewayClient(object):
             try:
                 options[each_default[0]]
             except KeyError:
-                print 'Option "' + each_default[0] + '" not set using default: ' + str(each_default[1])
+                print('Option "' + each_default[0] + '" not set using default: ' + str(each_default[1]))
                 options[each_default[0]] = each_default[1]
 
         self.names = names
@@ -441,7 +447,7 @@ class BayEOSGatewayClient(object):
         path = os.path.join(self.__get_option('path'),re.sub('[-]+|[/]+|[\\\\]+|["]+|[\']+', '_', name))
         if not os.path.isdir(path):
             try:
-                os.makedirs(path, 0700)
+                os.makedirs(path, 0o700)
             except OSError as err:
                 exit('OSError: ' + str(err))
         return path
@@ -471,7 +477,7 @@ class BayEOSGatewayClient(object):
         self.init_writer()
         self.writer = BayEOSWriter(path, self.__get_option('max_chunk'),
                                     self.__get_option('max_time'))
-        print 'Started writer for ' + self.name + ' with pid ' + str(os.getpid())
+        print('Started writer for ' + self.name + ' with pid ' + str(os.getpid()))
         self.writer.save_msg('Started writer for ' + self.name)
         while True:
             data = self.read_data()
@@ -488,7 +494,7 @@ class BayEOSGatewayClient(object):
                                    self.__get_option('bayeosgateway_user'),
                                    self.__get_option('absolute_time'),
                                    self.__get_option('remove'))
-        print 'Started sender for ' + self.name + ' with pid ' + str(os.getpid())
+        print('Started sender for ' + self.name + ' with pid ' + str(os.getpid()))
         while True:
             self.sender.send()
             sleep(self.__get_option('sender_sleep_time'))
@@ -509,7 +515,7 @@ class BayEOSGatewayClient(object):
         @param pair: if False writer and sender started in two processes, other parameters will be ignored
         @param thread: if True sender runs in a thread
         """
-        print 'Parent pid is ' + str(os.getpid())
+        print('Parent pid is ' + str(os.getpid()))
         for each_name in self.names:
             self.name = each_name  # will be forked and then overwritten
             path = self.__init_folder(each_name)

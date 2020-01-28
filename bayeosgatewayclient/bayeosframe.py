@@ -17,7 +17,7 @@ class BayEOSFrame(object):
         try:
             return FRAME_TYPES[frame_type]['class'](frame_type)
         except KeyError as err:
-            print 'Frame Type ' + str(err) + ' not found.'
+            print('Frame Type ' + str(err) + ' not found.')
 
     def __init__(self, frame_type=0x1):
         """Creates the binary Frame Type header of BayEOS Frames."""
@@ -37,11 +37,11 @@ class BayEOSFrame(object):
         return {}        
 
     def print_hex(self):
-        print map(hex,map(ord,self.frame))
+        print(map(hex,map(ord,self.frame)))
 
     def print_dict(self):
         """Prints a readable form of the BayEOS Frame."""
-        print self.parse(res={'origin':'','timestamp':time()})
+        print(self.parse(res={'origin':'','timestamp':time()}))
     
     @staticmethod
     def to_object(frame):
@@ -53,7 +53,7 @@ class BayEOSFrame(object):
             frame_type = unpack('<B', frame[0:1])[0]
             return BayEOSFrame.factory(frame_type)
         except TypeError as err:
-            print 'Error in to_object method: ' + str(err)
+            print('Error in to_object method: ' + str(err))
 
     @staticmethod
     def parse_frame(frame,res={},reset_res=True):
@@ -69,7 +69,7 @@ class BayEOSFrame(object):
             bayeos_frame.frame = frame
             return bayeos_frame.parse(res)
         except AttributeError as err:
-            print 'Error in parse_frame method: ' + str(err)
+            print('Error in parse_frame method: ' + str(err))
     
     
 
@@ -101,18 +101,18 @@ class DataFrame(BayEOSFrame):
         try:
             val_format = DATA_TYPES[data_type]['format']  # search DATA_TYPES Dictionary
         except KeyError as err:
-            print 'Error in create method for Data Frame: Data Type ' + str(err) + ' is not defined.'
+            print('Error in create method for Data Frame: Data Type ' + str(err) + ' is not defined.')
             return
 
         if offset_type == 0x0:  # Data Frame with channel offset
             frame += pack('<B', offset)  # 1 byte channel offset
 
-        for key, value in values.iteritems():
+        for key, value in values.items():
             if offset_type == 0x40:  # Data Frame with channel indices
                 frame += pack('<B', int(key))
             elif offset_type == 0x60: # labeled channel type
                 frame += pack('<B',len(str(key)))
-                frame += str(key)
+                frame += str(key).encode('utf-8')
             frame += pack(val_format, value)
         self.frame += frame
 
@@ -121,7 +121,7 @@ class DataFrame(BayEOSFrame):
         @return tuples of channel indices and values
         """
         if unpack('<B', self.frame[0:1])[0] != 0x1:
-            print 'This is not a Data Frame.'
+            print('This is not a Data Frame.')
             return False
         value_type = unpack('<B', self.frame[1:2])[0]
         offset_type = 0xf0 & value_type
@@ -149,7 +149,7 @@ class DataFrame(BayEOSFrame):
                 value = unpack(val_format, self.frame[pos:pos + val_length])[0]
                 payload[key] = value
             except:
-                print 'Unpack error'
+                print('Unpack error')
                 pass
             pos += val_length
         res['values']= payload
@@ -180,7 +180,7 @@ class MessageFrame(BayEOSFrame):
         """Creates a BayEOS Message or Error Message Frame.
         @param message: message to save
         """
-        self.frame += message
+        self.frame += message.encode('utf-8')
 
     def parse(self,res):
         """Parses a binary coded Message Frame into a Python dictionary.
@@ -270,14 +270,14 @@ class OriginFrame(BayEOSFrame):
         @param nested_frame: valid BayEOS frame
         """
         origin = origin[0:255]
-        self.frame += pack('<B', len(origin)) + origin + nested_frame
+        self.frame += pack('<B', len(origin)) + origin.encode('utf-8') + nested_frame
  
     def parse(self,res):
         """Parses a binary coded Origin Frame into a Python dictionary.
         @return origin and nested_frame as a binary String
         """
         length = unpack('<B', self.frame[1:2])[0]
-        res['origin']=self.frame[2:length + 2]
+        res['origin']=self.frame[2:length + 2].decode('utf-8')
         return BayEOSFrame.parse_frame(self.frame[length + 2:],res,False)
 
 class RoutedOriginFrame(BayEOSFrame):
@@ -288,14 +288,14 @@ class RoutedOriginFrame(BayEOSFrame):
         @param nested_frame: valid BayEOS frame
         """
         origin = origin[0:255]
-        self.frame += pack('<B', len(origin)) + origin + nested_frame
+        self.frame += pack('<B', len(origin)) + origin.encode('utf-8') + nested_frame
  
     def parse(self,res):
         """Parses a binary coded routed Origin Frame into a Python dictionary.
         @return origin and nested_frame as a binary String
         """
         length = unpack('<B', self.frame[1:2])[0]
-        res['origin']+='/'+self.frame[2:length + 2]
+        res['origin']+='/'+self.frame[2:length + 2].decode('utf-8')
         return BayEOSFrame.parse_frame(self.frame[length + 2:],res,False)
 
 class BinaryFrame(BayEOSFrame):
@@ -423,6 +423,6 @@ FRAME_TYPES = {0x1: {'name' : 'Data Frame',
                      'class' : DelayedSecondFrame}}
 
 # swaps keys and values in FRAME_TYPES Dictionary
-# FRAME_NAMES = {value['name']:key for key, value in FRAME_TYPES.iteritems()}
-# for key, value in FRAME_NAMES.iteritems():
+# FRAME_NAMES = {value['name']:key for key, value in FRAME_TYPES.items()}
+# for key, value in FRAME_NAMES.items():
 #     print key, value
