@@ -1,15 +1,16 @@
 """bayeosgatewayclient"""
-import os, string, base64, re
+import os, base64, re
 from os import rename
 from tempfile import gettempdir
 from struct import pack, unpack
 from socket import gethostname
 from time import sleep, time
 from glob import glob
-from bayeosframe import BayEOSFrame
+from . bayeosframe import BayEOSFrame
 from abc import abstractmethod
 from multiprocessing import Process
 from threading import Thread
+
 import sys
 if sys.version_info> (2 , 8):
     from _thread import start_new_thread

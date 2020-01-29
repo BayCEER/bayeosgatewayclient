@@ -1,3 +1,3 @@
 """bayeosgatewayclient"""
-
-from bayeosgatewayclient import *
+from . bayeosgatewayclient import *
+from . bayeosframe import *

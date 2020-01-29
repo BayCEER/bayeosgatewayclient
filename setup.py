@@ -3,7 +3,7 @@
 try:
     from setuptools import setup
 except ImportError as ierr:
-    print 'Import error :' + str(ierr)
+    print('Import error :' + str(ierr))
     from distutils.core import setup
 
 setup(
