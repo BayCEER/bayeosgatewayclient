@@ -4,6 +4,9 @@ from struct import pack, unpack
 from time import time
 from datetime import datetime
 from abc import abstractmethod
+import logging
+
+logger = logging.getLogger(__name__)
 
 REFERENCE_TIME_DIF = (datetime(2000, 1, 1) -
                               datetime(1970, 1, 1)).total_seconds()
@@ -17,7 +20,7 @@ class BayEOSFrame(object):
         try:
             return FRAME_TYPES[frame_type]['class'](frame_type)
         except KeyError as err:
-            print('Frame Type ' + str(err) + ' not found.')
+            logger.error('Frame Type %s not found.', err)
 
     def __init__(self, frame_type=0x1):
         """Creates the binary Frame Type header of BayEOS Frames."""
@@ -53,7 +56,7 @@ class BayEOSFrame(object):
             frame_type = unpack('<B', frame[0:1])[0]
             return BayEOSFrame.factory(frame_type)
         except TypeError as err:
-            print('Error in to_object method: ' + str(err))
+            logger.error('Error in to_object method: %s',err)
 
     @staticmethod
     def parse_frame(frame,res={},reset_res=True):
@@ -69,7 +72,7 @@ class BayEOSFrame(object):
             bayeos_frame.frame = frame
             return bayeos_frame.parse(res)
         except AttributeError as err:
-            print('Error in parse_frame method: ' + str(err))
+            logger.error('Error in parse_frame method: %s',err)
     
     
 
@@ -101,7 +104,7 @@ class DataFrame(BayEOSFrame):
         try:
             val_format = DATA_TYPES[data_type]['format']  # search DATA_TYPES Dictionary
         except KeyError as err:
-            print('Error in create method for Data Frame: Data Type ' + str(err) + ' is not defined.')
+            logger.error('Error in create method for Data Frame: Data Type %s is not defined.',err)
             return
 
         if offset_type == 0x0:  # Data Frame with channel offset
@@ -121,7 +124,7 @@ class DataFrame(BayEOSFrame):
         @return tuples of channel indices and values
         """
         if unpack('<B', self.frame[0:1])[0] != 0x1:
-            print('This is not a Data Frame.')
+            logger.error('This is not a Data Frame.')
             return False
         value_type = unpack('<B', self.frame[1:2])[0]
         offset_type = 0xf0 & value_type
@@ -149,7 +152,7 @@ class DataFrame(BayEOSFrame):
                 value = unpack(val_format, self.frame[pos:pos + val_length])[0]
                 payload[key] = value
             except:
-                print('Unpack error')
+                logger.error('Unpack error')
                 pass
             pos += val_length
         res['values']= payload

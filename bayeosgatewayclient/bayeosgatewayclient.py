@@ -25,7 +25,7 @@ import logging
 import requests
 import tempfile
 
-logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=logging.WARNING)
+logger = logging.getLogger(__name__)
 
 DEFAULTS = {'path' : gettempdir(),
             'writer_sleep_time' : 5,
@@ -83,7 +83,7 @@ def bayeos_confparser(config_file):
                     None
                 config[key] = value
     except ConfigParser.Error as e:
-        print(str(e) + '. Config File not found or corrupt.')
+        logger.error('%s. Config File not found or corrupt.',e)        
     return config
 
 class BayEOSWriter(object):
@@ -97,7 +97,7 @@ class BayEOSWriter(object):
         @param max_time: maximum time when a new file is started
         @param log_level: log level according to logging package
         """
-        logging.getLogger().setLevel(log_level)
+        logger.setLevel(log_level)
         self.path = os.path.abspath(path)
         self.max_chunk = max_chunk
         self.max_time = max_time
@@ -105,14 +105,14 @@ class BayEOSWriter(object):
             try:
                 os.makedirs(self.path, 0o700)
             except OSError as err:
-                logging.critical('OSError: ' + str(err) + ' Could not create dir.')
+                logger.critical('OSError: %s Could not create dir.',err)
                 exit()
         files = glob(os.path.join(self.path,'*.act'))
         for each_file in files:
             try:
                 rename(each_file, each_file.replace('.act', '.rd'))
             except OSError as err:
-                logging.warning('OSError: ' + str(err))
+                logger.warning('OSError: %s',err)
         self.__start_new_file()
 
     def __save_frame(self, frame, timestamp=0):
@@ -128,7 +128,7 @@ class BayEOSWriter(object):
             
         self.file.write(pack('<d', timestamp) + pack('<h', frame_length) + frame)
         self.file.flush()
-        logging.debug('Frame saved.')
+        logger.debug('Frame saved.')
 
 
     def __start_new_file(self):
@@ -193,14 +193,14 @@ class BayEOSWriter(object):
         """Close the current used file and renames it from .act to .rd.
         Starts a new file.
         """
-        logging.info('Flushed writer.')
+        logger.info('Flushed writer.')
         self.file.close()
         try:
             p = (self.current_name+'$$__end_key__$$').replace('.act$$__end_key__$$','.rd')                 
             rename(self.current_name, p)
-            logging.debug('File '+ p + ' ready for post')
+            logger.debug('File %s ready for post',p)
         except OSError as err:
-            logging.warning(str(err) + '. Could not find file: ' + self.current_name )
+            logger.warning('%s. Could not find file: %s',err,self.current_name )
         self.__start_new_file()
 
 class BayEOSSender(object):
@@ -234,12 +234,12 @@ class BayEOSSender(object):
         self.user = user
         self.absolute_time = absolute_time
         self.remove = remove
-        logging.getLogger().setLevel(log_level)
+        logger.setLevel(log_level)
         if backup_path and not os.path.isdir(backup_path):
             try:
                 os.makedirs(backup_path, 0o700)
             except OSError as err:
-                logging.warning('OSError: ' + str(err))
+                logger.warning('OSError: %s',err)
             backup_path=os.path.abspath(backup_path)
         self.backup_path = backup_path
 
@@ -252,12 +252,12 @@ class BayEOSSender(object):
         try:
             count_frames += self.__send_files(self.path)
         except:
-            logging.warning('Send error on __send_files(: ' + self.path + ')')
+            logger.warning('Send error on __send_files(%s)',self.path)
         if self.backup_path:
             try:
                 count_frames += self.__send_files(self.backup_path)
             except:
-                logging.warning('Send error on __send_files(: ' + self.backup_path + ')')
+                logger.warning('Send error on __send_files(%s)',self.backup_path)
         return count_frames
 
     def __send_files(self, path):
@@ -268,7 +268,7 @@ class BayEOSSender(object):
         try:
             files = glob(os.path.join(path,'*.rd'))
         except OSError as err:
-            logging.warning('OSError: ' + str(err))
+            logger.warning('OSError: %s',err)
             return 0
         
         if len(files) == 0:
@@ -278,7 +278,7 @@ class BayEOSSender(object):
         i = 0
         while i < len(files):
             if(os.stat(files[i]).st_size==0):
-                logging.warning('Empty file. Removing')
+                logger.warning('Empty file. Removing')
                 os.remove(files[i])
                 i += 1
                 continue
@@ -286,7 +286,7 @@ class BayEOSSender(object):
             try:
                 count = self.__post_file(files[i])
             except:
-                logging.warning('Sender __send_file error on '+ files[i])
+                logger.warning('Sender __send_file error on %s',files[i])
                 count=0
             
             if count:
@@ -299,11 +299,11 @@ class BayEOSSender(object):
         # move files to backup_path
         if self.backup_path and path != self.backup_path:
             while i < len(files):        
-                logging.debug('moving ' + files[i] + ' to backup_path')
+                logger.debug('moving %s to backup_path',files[i])
                 try:
                     move(files[i], files[i].replace(self.path,self.backup_path))
                 except OSError as err:
-                    logging.warning('OSError: ' + str(err))
+                    logger.warning('OSError: %s',err)
                 i += 1
 
         return count_frames
@@ -338,7 +338,7 @@ class BayEOSSender(object):
             backup_file_name.replace(self.path, self.backup_path)
         if len(frames)==0:
             move(file_name, backup_file_name)
-            logging.warning('No frames in file. Move to ' + backup_file_name)
+            logger.warning('No frames in file. Move to %s',backup_file_name)
             return 0
         
         data['bayeosframes[]']=frames
@@ -347,7 +347,7 @@ class BayEOSSender(object):
             r=requests.post(self.url,data=data,auth=(self.user, self.password),headers=headers, timeout=10)
 #            r.raise_for_status()
         except requests.exceptions.RequestException as e:  
-            logging.warning('sender __post error:'+e)
+            logger.warning('sender __post error:%s',e)
             return 0
         
         if r.status_code==200: # all fine!
@@ -357,7 +357,7 @@ class BayEOSSender(object):
                 move(file_name, backup_file_name)
             return len(frames)
         
-        logging.warning('sender __post error code: '+r.status_code)
+        logger.warning('sender __post error code:%s' ,r.status_code)
         
         return 0
  
@@ -369,11 +369,11 @@ class BayEOSSender(object):
             try:
                 res = self.send()
                 if res > 0:
-                    logging.info('Successfully sent ' + str(res) + ' frames.')
+                    logger.info('Successfully sent %s frames.',res)
             except Exception as err:
-                logging.warning('Exception:' + str(err) + '\n') 
+                logger.warning('Exception:%s',err) 
             except:
-                logging.warning('Unknown exception in run()\n')
+                logger.warning('Unknown exception in run()')
             sleep(sleep_sec)
     
     def run_thread(self,sleep_sec=DEFAULTS['sender_sleep_time']):
@@ -384,7 +384,7 @@ class BayEOSSender(object):
             t1 = Thread(target=self.run, args=(sleep_sec,))
             t1.start()
             t1.join()
-            logging.warning('Sender run thread has terminated - starting new one\n')
+            logger.warning('Sender run thread has terminated - starting new one')
         
 
     def start(self, sleep_sec=DEFAULTS['sender_sleep_time'], thread=True):
@@ -393,10 +393,10 @@ class BayEOSSender(object):
         """
         if thread:
             start_new_thread(self.run_thread, (sleep_sec,))
-            logging.info('started sender thread')
+            logger.info('started sender thread')
         else:
             Process(target=self.run_thread, args=(sleep_sec,)).start()
-            logging.info('started sender process')
+            logger.info('started sender process')
 
 class BayEOSGatewayClient(object):
     """Combines writer and sender for every device."""
