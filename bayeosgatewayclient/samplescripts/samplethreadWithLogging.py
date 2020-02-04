@@ -11,10 +11,14 @@ NAME = 'Python-Thread-WithLogging'
 
 URL = 'http://bayconf.bayceer.uni-bayreuth.de/gateway/frame/saveFlat'
 
-writer = BayEOSWriter(PATH,max_time=10,log_level=logging.DEBUG)
+## Define logging format
+## has to be done before creation of writer and sender
+logging.basicConfig(format='%(asctime)s: samplethreadWithLogging.py: %(levelname)s:%(message)s ', level=logging.DEBUG)
+
+writer = BayEOSWriter(PATH,max_time=10)
 writer.save_msg('Writer was started.')
 
-sender = BayEOSSender(PATH, NAME, URL,backup_path=BACKUP_PATH,log_level=logging.DEBUG)
+sender = BayEOSSender(PATH, NAME, URL,backup_path=BACKUP_PATH)
 sender.start()
 
 nr=0

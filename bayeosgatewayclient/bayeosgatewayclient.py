@@ -90,14 +90,16 @@ class BayEOSWriter(object):
     """Writes BayEOSFrames to file."""
     
     def __init__(self, path=DEFAULTS['path'], max_chunk=DEFAULTS['max_chunk'],
-                 max_time=DEFAULTS['max_time'],log_level=logging.INFO):
+                 max_time=DEFAULTS['max_time'],log_level=None):
         """Constructor for a BayEOSWriter instance.
         @param path: path of queue directory
         @param max_chunk: maximum file size in Bytes, when reached a new file is started
         @param max_time: maximum time when a new file is started
         @param log_level: log level according to logging package
         """
-        logger.setLevel(log_level)
+        logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=logging.INFO)
+        if not log_level is None: 
+            logger.setLevel(log_level)
         self.path = os.path.abspath(path)
         self.max_chunk = max_chunk
         self.max_time = max_time
@@ -213,7 +215,7 @@ class BayEOSSender(object):
                  absolute_time=DEFAULTS['absolute_time'],
                  remove=DEFAULTS['remove'],
                  backup_path=DEFAULTS['backup_path'],
-                 log_level=logging.INFO):
+                 log_level=None):
         """Constructor for BayEOSSender instance.
         @param path: path where BayEOSWriter puts files
         @param name: sender name
@@ -234,7 +236,9 @@ class BayEOSSender(object):
         self.user = user
         self.absolute_time = absolute_time
         self.remove = remove
-        logger.setLevel(log_level)
+        logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=logging.INFO)
+        if not log_level is None: 
+            logger.setLevel(log_level)
         if backup_path and not os.path.isdir(backup_path):
             try:
                 os.makedirs(backup_path, 0o700)
