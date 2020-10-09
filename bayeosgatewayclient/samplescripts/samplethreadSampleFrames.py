@@ -37,5 +37,17 @@ while True:
     routed_origin_frame = BayEOSFrame.factory(0xd)
     routed_origin_frame.create(origin="RoutedOrigin", nested_frame=checksum_frame.frame)
     writer.save_frame(routed_origin_frame.frame)
+    
+    ## test writer.save methode
+    v={'test1':1,'test2':3}
+    writer.save(v) ## Channel test1 and test2
+    v=[10,11,12]
+    writer.save(v) ## Channel 1-3
+    writer.save(v,offset=10) ## Channel 11-13
+    writer.save(v,origin='Python-SampleFrames -- fixed Origin')
+    writer.save(v,origin='with routed Origin',routed=True)
+    
     writer.flush()
+   
+    
     sleep(6)

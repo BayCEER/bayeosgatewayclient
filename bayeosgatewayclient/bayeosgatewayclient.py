@@ -141,7 +141,7 @@ class BayEOSWriter(object):
         os.close(fd)
         self.file = open(self.current_name, 'wb')
 
-    def save(self, values, value_type=0x41, offset=0, timestamp=0, origin=None, routed=False):
+    def save(self, values, value_type=None, offset=0, timestamp=0, origin=None, routed=False):
         """Generic frame saving method.
         @param values: list with [channel index, value] tuples or just values (..,..) or [..,..]
         @param value_type: defines Offset and Data Type
@@ -155,7 +155,11 @@ class BayEOSWriter(object):
         if not origin:
             self.__save_frame(data_frame.frame, timestamp)
         else:
-            origin_frame = BayEOSFrame.factory(0xb)
+            if routed:
+                origin_frame = BayEOSFrame.factory(0xd)
+            else:
+                origin_frame = BayEOSFrame.factory(0xb)
+                
             origin_frame.create(origin=origin, nested_frame=data_frame.frame)
             self.__save_frame(origin_frame.frame, timestamp)
 
@@ -386,6 +390,7 @@ class BayEOSSender(object):
         """
         while True:
             t1 = Thread(target=self.run, args=(sleep_sec,))
+            t1.setDaemon(True)
             t1.start()
             t1.join()
             logger.warning('Sender run thread has terminated - starting new one')

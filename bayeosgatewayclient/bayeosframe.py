@@ -78,7 +78,7 @@ class BayEOSFrame(object):
 
 class DataFrame(BayEOSFrame):
     """Data Frame Factory class."""
-    def create(self, values=(), value_type=0x41, offset=0):
+    def create(self, values=(), value_type=None, offset=0):
         """Creates a BayEOS Data Frame.
         @param values: list, tuple or dictionary with channel number keys
         @param value_type: defines Offset and Data Type
@@ -97,6 +97,14 @@ class DataFrame(BayEOSFrame):
                 key += 1
             values=v
         
+        if value_type is None:
+            value_type = 0x41
+            for key in values:
+                if isinstance(key, str):
+                    value_type = 0x61
+                    break
+        
+        
         value_type = int(value_type)
         frame = pack('<B', value_type)
         offset_type = (0xf0 & value_type)  # first four bits of the Value Type
@@ -112,7 +120,7 @@ class DataFrame(BayEOSFrame):
 
         for key, value in values.items():
             if offset_type == 0x40:  # Data Frame with channel indices
-                frame += pack('<B', int(key))
+                frame += pack('<B', int(key+offset))
             elif offset_type == 0x60: # labeled channel type
                 frame += pack('<B',len(str(key)))
                 frame += str(key).encode('utf-8')
