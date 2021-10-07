@@ -247,13 +247,13 @@ class DelayedFrame(BayEOSFrame):
         @param delay: delay in milliseconds
         """
         
-        self.frame += pack('<l', delay) + nested_frame
+        self.frame += pack('<L', delay) + nested_frame
 
     def parse(self,res):
         """Parses a binary coded Delayed Frame into a Python dictionary.
         @return timestamp and nested_frame as a binary String
         """
-        res['timestamp']-=unpack('<l', self.frame[1:5])[0]/1000
+        res['timestamp']-=unpack('<L', self.frame[1:5])[0]/1000
         return BayEOSFrame.parse_frame(self.frame[5:],res,False)
 
 class DelayedSecondFrame(BayEOSFrame):
@@ -264,13 +264,13 @@ class DelayedSecondFrame(BayEOSFrame):
         @param delay: delay in milliseconds
         """
         
-        self.frame += pack('<l', delay) + nested_frame
+        self.frame += pack('<L', delay) + nested_frame
 
     def parse(self,res):
         """Parses a binary coded Delayed Frame into a Python dictionary.
         @return timestamp and nested_frame as a binary String
         """
-        res['timestamp']-=unpack('<l', self.frame[1:5])[0]
+        res['timestamp']-=unpack('<L', self.frame[1:5])[0]
         return BayEOSFrame.parse_frame(self.frame[5:],res,False)
 
 class OriginFrame(BayEOSFrame):
@@ -338,14 +338,14 @@ class TimestampFrameSec(BayEOSFrame):
             timestamp = time()
         # seconds since 1st of January, 2000
         time_since_reference = round(timestamp - REFERENCE_TIME_DIF)
-        self.frame += pack('<l', time_since_reference) + nested_frame
+        self.frame += pack('<L', time_since_reference) + nested_frame
         self.nested_frame = nested_frame
 
     def parse(self,res):
         """Parses a binary coded Timestamp Frame (s) into a Python dictionary.
         @return timestamp and nested_frame as a binary String
         """
-        res['timestamp']=unpack('<l', self.frame[1:5])[0]
+        res['timestamp']=unpack('<L', self.frame[1:5])[0]
         return BayEOSFrame.parse_frame(self.frame[5:],res,False)
 
 class TimestampFrame(BayEOSFrame):
@@ -363,7 +363,7 @@ class TimestampFrame(BayEOSFrame):
     def parse(self,res):
         """Parses a binary coded Timestamp Frame (ms) into a Python dictionary.
         @return timestamp and nested_frame as a binary String"""
-        res['timestamp']=unpack('<q', self.frame[1:9])[0]
+        res['timestamp']=unpack('<Q', self.frame[1:9])[0]
         return BayEOSFrame.parse_frame(self.frame[9:],res,False)
 
 class ChecksumFrame(BayEOSFrame):

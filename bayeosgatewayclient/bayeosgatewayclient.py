@@ -293,8 +293,8 @@ class BayEOSSender(object):
 
             try:
                 count = self.__post_file(files[i])
-            except:
-                logger.warning('Sender __send_file error on %s',files[i])
+            except Exception as e:
+                logger.warning('Sender __send_file error on %s: %s',files[i],e)
                 count=0
             
             if count:
@@ -340,6 +340,8 @@ class BayEOSSender(object):
                 wrapper_frame.create(frame, timestamp)
                 frames.append(base64.b64encode(wrapper_frame.frame))
             timestamp = current_file.read(8)
+            if len(timestamp)<8:
+               timestamp=''
         current_file.close()
         backup_file_name = file_name.replace('.rd', '.bak')
         if self.backup_path:
@@ -350,7 +352,7 @@ class BayEOSSender(object):
             return 0
         
         data['bayeosframes[]']=frames
-        headers={'user-agent': 'BayEOS-Python-Gateway-Client/0.3.9'}
+        headers={'user-agent': 'BayEOS-Python-Gateway-Client/0.4.3'}
         try:
             r=requests.post(self.url,data=data,auth=(self.user, self.password),headers=headers, timeout=10)
 #            r.raise_for_status()
