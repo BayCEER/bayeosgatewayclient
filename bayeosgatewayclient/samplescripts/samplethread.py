@@ -5,10 +5,8 @@ import tempfile
 from os import path
 
 PATH = path.join(tempfile.gettempdir(),'bayeos-device') 
-writer = BayEOSWriter(PATH)
-
 NAME = 'Python-Thread-Example2'
-URL = 'http://bayconf.bayceer.uni-bayreuth.de/gateway/frame/saveFlat'
+URL = 'http://localhost/gateway/frame/saveFlat'
 
 writer = BayEOSWriter(PATH)
 writer.save_msg('Writer was started.')
