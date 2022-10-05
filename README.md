@@ -69,3 +69,10 @@ while True:
 ```
 
 More examples can be found in folder [samplescripts](bayeosgatewayclient/samplescripts)
+
+## Useful Hints 
+- Logging: You can adjust the log level of BayEOS Writer and Sender by using the log_level argument.
+
+  
+
+
